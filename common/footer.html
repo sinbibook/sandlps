@@ -7,10 +7,16 @@
                 <!-- data-* : data-footer-business-name (property.businessInfo.businessName) -->
                 <p class="stxt" data-footer-business-name>상호명</p>
             </div>
-            <!-- data-* : data-footer-phone (property.contactPhone) / data-footer-phone-link (tel:) -->
+            <!-- 전화번호 : 하드코딩 (매핑 해제됨 / 복원 시 아래 주석 블록으로 원복) -->
+            <div class="ft_tel">
+                <a href="tel:07043649542"><img src="images/ft_tel.png" alt="전화"> <span>070-4364-9542</span></a>
+            </div>
+            <!-- [원본 매핑 블록 - 복원용]
+            data-* : data-footer-phone (property.contactPhone) / data-footer-phone-link (tel:)
             <div class="ft_tel">
                 <a href="tel:" data-footer-phone-link><img src="images/ft_tel.png" alt="전화"> <span data-footer-phone>000-0000-0000</span></a>
             </div>
+            -->
             <div class="ft_info">
                 <ul>
                     <!-- data-* : data-footer-address (businessInfo.businessAddress) -->

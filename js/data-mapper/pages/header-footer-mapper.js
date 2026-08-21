@@ -265,15 +265,17 @@
 
     // 상호명
     setText('[data-footer-business-name]', b.businessName || this.getPropertyName());
-    // 전화번호 + tel: 링크 ← property.contactPhone (연락처 전화번호)
-    var contactPhone = (prop && prop.contactPhone) || '';
-    setText('[data-footer-phone]', contactPhone);
-    if (contactPhone) {
-      var tel = 'tel:' + String(contactPhone).replace(/[^0-9+]/g, '');
-      document.querySelectorAll('[data-footer-phone-link]').forEach(function (el) {
-        el.setAttribute('href', tel);
-      });
-    }
+    // 전화번호 : footer.html 에 하드코딩(070-4364-9542) 처리하여 매핑 해제
+    // 복원 시 아래 주석 블록을 되살리고 footer.html 의 하드코딩 블록도 원복할 것
+    // // 전화번호 + tel: 링크 ← property.contactPhone (연락처 전화번호)
+    // var contactPhone = (prop && prop.contactPhone) || '';
+    // setText('[data-footer-phone]', contactPhone);
+    // if (contactPhone) {
+    //   var tel = 'tel:' + String(contactPhone).replace(/[^0-9+]/g, '');
+    //   document.querySelectorAll('[data-footer-phone-link]').forEach(function (el) {
+    //     el.setAttribute('href', tel);
+    //   });
+    // }
     // 사업자 정보
     setText('[data-footer-address]', b.businessAddress);
     setText('[data-footer-business-number]', b.businessNumber);
