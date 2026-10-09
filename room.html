@@ -83,7 +83,9 @@
                             </div>
                             <!-- data-* : data-room-image-thumb | roomtypes[current] interior 이미지(<img>) -->
                             <div class="img fadeUp" data-scroll="">
-                                <img src="" alt="" data-room-image-thumb>
+                                <!-- ⚠️ `src` 를 비워 두지 않는다. `src=""` 는 브라우저가 현재 페이지를 다시 요청한다.
+                                     매퍼가 채우기 전까지 속성 자체를 두지 않는다. -->
+                                <img alt="" data-room-image-thumb>
                             </div>
                             <!--dl class="fadeUp" data-scroll>
                                 <dt><span>ROOM INFO</span></dt>
@@ -163,6 +165,14 @@
                         <p class="stit fadeUp" data-scroll="" data-room-vimg-desc>감성 가득한 순간, <br>평생 잊지못할 낭만적인 추억을 만들어보세요. </p>
                         <!-- data-* : data-room-gallery | roomtypes[current] interior 이미지 (li 배경+img 동적, 없으면 placeholder) -->
                         <ul data-room-gallery></ul>
+                        <!-- s: 객실 평면도 — 원본 객실 상세의 평면도 크롤링 이미지가 있을 때만 노출.
+                             제목 영역 없이 도면 이미지 한 장만 놓는다. 없으면 매퍼가 구간째 숨긴다. -->
+                        <div class="room_floorplan" data-room-floorplan-section style="display: none">
+                          <!-- data-* : data-room-floorplan-image
+                               roomtypes[current] 평면도 이미지 → 없으면 섹션 미노출 -->
+                          <img alt="객실 평면도" data-room-floorplan-image />
+                        </div>
+                        <!--// 객실 평면도 -->
                     </div>
                 </div>
                 <!-- e: room-wrap -->

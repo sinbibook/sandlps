@@ -70,6 +70,7 @@
     this.mapInfo(current, room);
     this.mapVimgText(current);
     this.mapGallery(current);
+    this.mapFloorplan(current);
     this.refreshLoco();
   };
 
@@ -108,10 +109,27 @@
     Array.prototype.forEach.call(nav.children, function (ch) {
       if (!ch.hasAttribute('data-mapped')) statics.push(ch.outerHTML);
     });
-    var lis = roomtypes.map(function (rt) {
-      var on = current && String(rt.id) === String(current.id) ? ' class="on"' : '';
-      return '<li data-mapped' + on + '><a href="room.html?room_id=' + escapeHtml(rt.id) + '">' +
-        escapeHtml(rt.name) + '</a></li>';
+    var self = this;
+    var roomItems = this.getRoomMenuItems(roomtypes, function (rt) { return (rt && rt.name) || ''; });
+    // 그룹 안이면 그 그룹의 객실만 펼친다.
+    // 헤더/미리보기 메뉴는 그룹명 하나로 접히고 클릭 시 그룹의 첫 객실로 들어가는데,
+    // 이 탭까지 접혀 있으면 2번째 객실부터는 UI 로 도달할 방법이 없다.
+    // 멤버가 1실인 그룹은 펼치지 않는다(항목이 하나뿐이라 의미가 없다).
+    var activeGroup = null;
+    roomItems.forEach(function (it) {
+      var members = (it && it.roomtypes) || [];
+      if (members.length > 1 && self.isRoomMenuItemActive(it, current && current.id)) activeGroup = it;
+    });
+    if (activeGroup) {
+      roomItems = activeGroup.roomtypes.map(function (rt) {
+        return { label: (rt && rt.name) || '', roomtype: rt, roomtypes: [rt] };
+      });
+    }
+    var lis = roomItems.map(function (item) {
+      var name = self.getRoomMenuLabel(item);
+      var on = self.isRoomMenuItemActive(item, current && current.id) ? ' class="on"' : '';
+      return '<li data-mapped' + on + '><a href="' + escapeHtml(self.getRoomMenuLink(item)) + '">' +
+        escapeHtml(name) + '</a></li>';
     });
     nav.innerHTML = statics.join('') + lis.join('');
   };
@@ -179,6 +197,35 @@
     ul.innerHTML = images.map(function (img) {
       return '<li class="fadeUp is-inview" style="background:url(' + img.url + ') no-repeat center center;background-size:cover;"><img src="' + img.url + '" alt=""></li>';
     }).join('');
+  };
+
+  /* MAPPER: roomtypes[current] 평면도 이미지 → [data-room-floorplan-image]
+     ⚠️ 제목·설명 자리가 없다. 도면 이미지 한 장이 전부다.
+     ⚠️ 이미지가 없으면 [data-room-floorplan-section] 을 통째로 숨긴다 —
+        원본에 없던 빈 구간을 남기지 않는다.
+        (layout-map 의 배치도는 반대로 없어도 placeholder 를 세운다 — 규칙이 정반대다.)
+     ⚠️ URL 이 있는데 로드가 죽어도 구간째 숨긴다 — 깨진 아이콘만 남는 것보다 낫다. */
+  RoomMapper.prototype.mapFloorplan = function (current) {
+    var sections = document.querySelectorAll('[data-room-floorplan-section]');
+    if (!sections.length) return;
+
+    var image = this.getRoomFloorplanImage(current);
+    var url = (image && image.url) || '';
+
+    sections.forEach(function (el) {
+      el.style.display = url ? '' : 'none';
+    });
+    if (!url) return;
+
+    document.querySelectorAll('[data-room-floorplan-image]').forEach(function (img) {
+      img.alt = '객실 평면도';
+      img.onerror = function () {
+        sections.forEach(function (el) {
+          el.style.display = 'none';
+        });
+      };
+      img.src = url;
+    });
   };
 
   document.addEventListener('DOMContentLoaded', function () {

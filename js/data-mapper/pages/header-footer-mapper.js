@@ -1,6 +1,32 @@
 (function (global) {
   'use strict';
 
+  // 상담하기 — 뒤에 property.tripPropertyId 가 붙는다
+  var CONSULT_BASE_URL = 'https://www.bookingplay.co.kr/api/cti_eicn/kakao_happy_talk?tid=';
+
+  // 파트너 타입 — 원천은 백오피스 DB `public.contract_info.partner_type` 이고
+  // BFF 가 코드 문자열을 그대로 내려준다. **분기는 템플릿이 한다**(PC/모바일은 템플릿만 안다).
+  //
+  //   distributor_a  총판A     PC 상담하기 / 모바일 상담하기 + 예약하기
+  //   distributor_b  총판B     PC 없음     / 모바일 예약하기
+  //   sales_agency   판매대행  PC 없음     / 모바일 예약하기
+  //
+  // ⚠️ 예약하기는 **파트너 타입과 무관**하다 — 세 타입 모두 모바일에서만 뜬다.
+  //    그건 기존 `.ft_btn_reserve.for_m` 의 미디어쿼리가 이미 하고 있어 손대지 않는다.
+  //    타입으로 갈리는 것은 상담하기 하나뿐이다.
+  var CONSULT_PARTNER_TYPES = ['distributor_a'];
+
+  // homepage.socialLinks 의 키 — 마크업이 없는 플랫폼은 매칭 요소가 0개라 그냥 지나간다.
+  var SOCIAL_PLATFORMS = ['facebook', 'instagram', 'blog', 'youtube'];
+
+  // ⚠️ base-mapper 에 `cleanText` 가 없는 템플릿이 있어 의존하지 않는다.
+  //    (상담하기·소셜링크 공통 — 문자열 정리만 한다)
+  function consultText(v) {
+    return v === undefined || v === null ? '' : String(v).trim();
+  }
+
+
+
   function HeaderFooterMapper() {
     BaseDataMapper.call(this);
   }
@@ -12,6 +38,8 @@
     this.mapFavicon();
     this.mapBookingLinks();
     this.mapYbsButton();
+    this.mapSocialLinks();
+    this.mapConsult();
     this.mapRoomMenu();
     this.mapFacilityMenu();
     this.mapTravelMenu();
@@ -78,7 +106,8 @@
           var m = self.getMatchedRoom(rt);
           return m && m.status === 'active';
         });
-        roomsLink.href = firstActive ? ('room.html?room_id=' + firstActive.id) : 'room.html';
+        var firstItem = this.getRoomMenuItems(firstActive ? [firstActive] : [], function (rt) { return (rt && rt.name) || ''; })[0];
+        roomsLink.href = firstItem ? this.getRoomMenuLink(firstItem) : 'room.html';
       }
     }
 
@@ -99,9 +128,12 @@
     if (!els || !els.length) return;
 
     els.forEach(function (el) {
-      // 폭은 CSS 변수로 → 미디어쿼리로 반응형 제어 (기본 140px, 모바일 100px)
-      el.style.width = 'var(--logo-w, 140px)';
+      // 폭/높이 모두 CSS 변수 상한으로 → 로고 비율을 유지한 채 헤더 배경 안에 맞춰 축소.
+      // width를 고정하면 세로가 긴 로고가 헤더 배경 밖으로 넘치므로 max-* 로 제한한다.
+      el.style.width = 'auto';
       el.style.height = 'auto';
+      el.style.maxWidth = 'var(--logo-w, 140px)';
+      el.style.maxHeight = 'var(--logo-h, 60px)';
 
       if (logoUrl) {
         el.src = logoUrl;
@@ -144,6 +176,11 @@
     var ybs_url = 'https://rev.yapen.co.kr/external?ypIdx=';
     var ybsButtons = document.querySelectorAll('[data-ybs-button]');
 
+    // 예약 버튼의 '특가' 뱃지는 YBS 버튼이 노출될 때만 보인다
+    document.querySelectorAll('[data-ybs-badge]').forEach(function (badge) {
+      badge.style.display = ybsId ? '' : 'none';
+    });
+
     if (!ybsId) {
       ybsButtons.forEach(function (button) {
         button.style.display = 'none';
@@ -161,6 +198,75 @@
         link.addEventListener('click', function () {
           window.open(ybs_url + ybsId, '_blank');
         });
+      }
+    });
+  };
+
+  // MAPPER: homepage.socialLinks.{platform} → [data-homepage-socialLinks-{platform}]
+  //
+  // 헤더 네이버 버튼 = `blog`(어드민 blog 칸에 네이버 플레이스 주소를 넣어 쓴다),
+  // 인스타그램 버튼 = `instagram`. facebook/youtube 는 마크업이 없어 매칭 0개다.
+  // 값이 있으면 href 를 넣고 노출, 없으면(null·빈 문자열·키 없음) 숨긴다.
+  // 마크업 기본값이 display:none 이라 매핑 전에 빈 버튼이 비치지 않는다.
+  // 하나라도 보이면 루트에 data-social="on" — PC 메뉴(hd_lnb)를 왼쪽으로 밀어 버튼과 겹치지 않게
+  // 하는 CSS 훅이다 (styles/style.css 헤더 네이버·인스타그램 절).
+  HeaderFooterMapper.prototype.mapSocialLinks = function () {
+    var links = this.getHomepage().socialLinks || {};
+    var shown = 0;
+    SOCIAL_PLATFORMS.forEach(function (platform) {
+      var url = consultText(links[platform]);
+      document.querySelectorAll('[data-homepage-socialLinks-' + platform + ']').forEach(function (el) {
+        if (!url) {
+          el.style.display = 'none';
+          return;
+        }
+        el.href = url;
+        el.setAttribute('target', '_blank');
+        el.setAttribute('rel', 'noopener');
+        el.style.display = '';
+        shown++;
+      });
+    });
+    document.documentElement.setAttribute('data-social', shown ? 'on' : 'off');
+  };
+
+  // 상담 URL 에 쓸 tripPropertyId. 없거나 형식이 아니면 빈 문자열.
+  HeaderFooterMapper.prototype.getConsultId = function () {
+    var raw = consultText(this.getProperty().tripPropertyId);
+    // ⚠️ URL 쿼리에 그대로 붙는 값이라 토큰 형태만 통과시킨다. 플레이스홀더
+    //    문자열(`숙소 ID` 같은 한글·공백)이 들어와도 링크가 깨지지 않는다.
+    return /^[A-Za-z0-9_-]+$/.test(raw) ? raw : '';
+  };
+
+  // 상담하기 노출 대상인가 — 파트너 타입 + tripPropertyId 둘 다 있어야 한다.
+  HeaderFooterMapper.prototype.isConsultVisible = function () {
+    var partnerType = consultText(this.getProperty().partnerType);
+    return Boolean(this.getConsultId()) && CONSULT_PARTNER_TYPES.indexOf(partnerType) !== -1;
+  };
+
+  // MAPPER: property.tripPropertyId + partnerType → [data-consult-button] (우측 하단 상담하기)
+  //
+  // 총판A 만 노출하고, `tripPropertyId` 가 비면 타입과 무관하게 숨긴다.
+  // 값이 없으면 `[data-consult-wrap]` 째 숨긴다 — 버튼만 숨기면 빈 박스가 남는다.
+  HeaderFooterMapper.prototype.mapConsult = function () {
+    var tripPropertyId = this.getConsultId();
+    var visible = this.isConsultVisible();
+
+    // 상담하기가 빠지면 예약하기 아래가 비어 버린다.
+    // CSS 가 위치를 되돌릴 수 있도록 상태를 루트에 찍는다.
+    document.documentElement.setAttribute('data-consult', visible ? 'on' : 'off');
+
+    document.querySelectorAll('[data-consult-button]').forEach(function (el) {
+      var host = el.closest('[data-consult-wrap]') || el;
+      if (!visible) {
+        host.style.display = 'none';
+        return;
+      }
+      host.style.display = '';
+      var target = el.tagName === 'A' ? el : el.querySelector('a');
+      if (target) {
+        target.href = CONSULT_BASE_URL + tripPropertyId;
+        target.setAttribute('target', '_blank');
       }
     });
   };
@@ -187,11 +293,13 @@
     var containers = document.querySelectorAll('[data-rooms-submenu], [data-rooms-submenu-mobile]');
     if (!containers.length) return;
 
-    var lis = roomtypes
-      .filter(function (rt) { return rt.name && rt.name.trim(); })
-      .map(function (rt) {
-        return '<li data-mapped><a href="room.html?room_id=' + escapeHtml(rt.id) + '">' +
-          escapeHtml(rt.name) + '</a></li>';
+    var roomItems = this.getRoomMenuItems(roomtypes.filter(function (rt) { return rt.name && rt.name.trim(); }), function (rt) { return (rt && rt.name) || ''; });
+    var self = this;
+    var lis = roomItems.map(function (item) {
+        var rt = self.getRoomMenuRoomtype(item);
+        var name = self.getRoomMenuLabel(item);
+        return '<li data-mapped><a href="' + escapeHtml(self.getRoomMenuLink(item)) + '" title="' + escapeHtml(name) + '">' +
+          escapeHtml(name) + '</a></li>';
       });
 
     containers.forEach(function (container) { fillSubmenu(container, lis); });
@@ -206,7 +314,7 @@
     var lis = facilities
       .filter(function (f) { return f.name && String(f.name).trim(); })
       .map(function (f) {
-        return '<li data-mapped><a href="facility.html?id=' + escapeHtml(f.id) + '">' +
+        return '<li data-mapped><a href="facility.html?id=' + escapeHtml(f.id) + '" title="' + escapeHtml(f.name) + '">' +
           escapeHtml(f.name) + '</a></li>';
       });
 
@@ -253,8 +361,58 @@
     return '과';
   };
 
+  // 전화번호 링크(<a data-footer-phone-link>)를 번호 개수만큼 복제.
+  // PC 는 구분자(·)로 한 줄에, 모바일은 줄바꿈해 노출 (배치는 CSS 담당)
+  HeaderFooterMapper.prototype.renderFooterPhones = function (phones) {
+    var links = document.querySelectorAll('[data-footer-phone-link]');
+    if (!links.length) return;
+    var base = links[0];
+    var parent = base.parentNode;
+    // 재매핑 대비: 앞서 복제한 링크와 구분자를 제거하고 원본만 템플릿으로 사용
+    for (var i = links.length - 1; i >= 1; i--) {
+      links[i].parentNode.removeChild(links[i]);
+    }
+    parent.querySelectorAll('.ft_tel_sep').forEach(function (el) {
+      el.parentNode.removeChild(el);
+    });
+    // 번호가 2개 이상일 때만 붙는 클래스 (모바일 폰트/여백 조정용)
+    if (phones.length > 1) {
+      parent.classList.add('multi');
+    } else {
+      parent.classList.remove('multi');
+    }
+    phones.forEach(function (phone, idx) {
+      var el = idx === 0 ? base : base.cloneNode(true);
+      var span = el.querySelector('[data-footer-phone]');
+      if (span) span.textContent = phone;
+      el.setAttribute('href', 'tel:' + String(phone).replace(/[^0-9+]/g, ''));
+      if (idx > 0) {
+        // 링크 밖에 두어 구분자가 클릭 영역에 포함되지 않도록 함
+        var sep = document.createElement('span');
+        sep.className = 'ft_tel_sep';
+        sep.setAttribute('aria-hidden', 'true');
+        sep.textContent = '\u00b7';
+        parent.appendChild(sep);
+        parent.appendChild(el);
+      }
+    });
+  };
+
   // MAPPER: businessInfo.businessName / businessAddress / businessNumber / representativeName + property.contactPhone(전화)
+  // MAPPER: property.tripProviderName → [data-copyright]
+  // 공급사명이 있으면 data-copyright 의 템플릿 문자열에서 {provider} 를 치환한다.
+  // 값이 없으면(백오피스 미입력 → "") HTML 의 기존 트립일레븐 문구를 그대로 둔다.
+  HeaderFooterMapper.prototype.mapCopyright = function () {
+    var provider = String(this.getProperty().tripProviderName || '').trim();
+    if (!provider) return;
+    document.querySelectorAll('[data-copyright]').forEach(function (el) {
+      var tpl = el.getAttribute('data-copyright') || '';
+      el.textContent = tpl.replace(/\{provider\}/g, provider);
+    });
+  };
+
   HeaderFooterMapper.prototype.mapFooter = function () {
+    this.mapCopyright();
     var prop = this.getProperty();
     var b = (prop && prop.businessInfo) || {};
 
@@ -263,19 +421,14 @@
       document.querySelectorAll(sel).forEach(function (el) { el.textContent = val; });
     }
 
-    // 상호명
+    // 상호명 — 로고가 있으면 로고가 이름 역할을 하므로 중복 노출하지 않는다
     setText('[data-footer-business-name]', b.businessName || this.getPropertyName());
-    // 전화번호 : footer.html 에 하드코딩(070-4364-9542) 처리하여 매핑 해제
-    // 복원 시 아래 주석 블록을 되살리고 footer.html 의 하드코딩 블록도 원복할 것
-    // // 전화번호 + tel: 링크 ← property.contactPhone (연락처 전화번호)
-    // var contactPhone = (prop && prop.contactPhone) || '';
-    // setText('[data-footer-phone]', contactPhone);
-    // if (contactPhone) {
-    //   var tel = 'tel:' + String(contactPhone).replace(/[^0-9+]/g, '');
-    //   document.querySelectorAll('[data-footer-phone-link]').forEach(function (el) {
-    //     el.setAttribute('href', tel);
-    //   });
-    // }
+    var hasLogo = !!this.getLogo();
+    document.querySelectorAll('[data-footer-business-name]').forEach(function (el) {
+      el.style.display = hasLogo ? 'none' : '';
+    });
+    // 전화번호 + tel: 링크 ← property.contactPhone (배열이면 전부 한 줄씩 노출)
+    this.renderFooterPhones(this.toPhoneList(prop && prop.contactPhone));
     // 사업자 정보
     setText('[data-footer-address]', b.businessAddress);
     setText('[data-footer-business-number]', b.businessNumber);
