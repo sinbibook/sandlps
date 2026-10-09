@@ -107,19 +107,30 @@
     setText('[data-facility-name-en]', this.getPropertyNameEn());
     // 이용안내: customFields hero.title 우선 → facilities[].description → usageGuide fallback (빈 값도 항상 반영)
     var heroTitle = this.getHeroTitle(current);
-    var descText = (heroTitle && heroTitle.trim()) ? heroTitle : (current.description || current.usageGuide || '');
+    // description(소개문)과 usageGuide(이용안내)를 한 줄 띄워 **둘 다** 보여준다.
+    // 예전에는 폴백이라 description 이 있으면 usageGuide 가 통째로 묻혔다 —
+    // 이용 요금·시간·제약이 화면에서 사라졌다. 둘 다 비면 슬롯을 숨긴다.
+    // (t-template-H · I · J 와 같은 방식)
+    var body = (current.description || '').trim();
+    var guide = (current.usageGuide || '').trim();
+    var joined = body + (body && guide ? '\n\n' : '') + guide;
+    var descText = (heroTitle && heroTitle.trim()) ? heroTitle : joined;
     setHtml('[data-facility-description]', descText);
+    // 둘 다 비면 슬롯을 숨긴다 — 빈 줄만 남기 때문이다.
+    document.querySelectorAll('[data-facility-description]').forEach(function (el) {
+      el.style.display = descText ? '' : 'none';
+    });
 
     var images = this.getSelectedImages(current.images || []);
     setBg(document.querySelector('[data-facility-image]'), images[0] && images[0].url);
 
     var gallery = document.querySelector('[data-facility-gallery]');
     if (gallery) {
-      // 대표(0) 다음 이미지로 고정 4칸 구성, 이미지 없는 칸은 No-Image placeholder
-      var rest = images.slice(1, 5);
+      // 대표(0) 다음 이미지로 고정 2칸 구성, 이미지 없는 칸은 No-Image placeholder
+      var rest = images.slice(1, 3);
       var EMPTY = ImageHelpers.EMPTY_IMAGE_SVG;
       var html = '';
-      for (var i = 0; i < 4; i++) {
+      for (var i = 0; i < 2; i++) {
         var img = rest[i] && rest[i].url;
         if (img) {
           html += '<li class="fadeUp is-inview" style="background-image:url(' + img + ')"><img src="' + img + '" alt=""></li>';

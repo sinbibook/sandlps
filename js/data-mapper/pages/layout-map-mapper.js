@@ -74,14 +74,17 @@
     var nav = document.querySelector('[data-room-list-nav]');
     if (!nav) return;
     var roomtypes = this.getRoomtypes().filter(function (rt) { return rt.name && rt.name.trim(); });
+    var roomItems = this.getRoomMenuItems(roomtypes, function (rt) { return (rt && rt.name) || ''; });
 
     var statics = [];
     Array.prototype.forEach.call(nav.children, function (ch) {
       if (!ch.hasAttribute('data-mapped')) statics.push(ch.outerHTML);
     });
-    var lis = roomtypes.map(function (rt) {
-      return '<li data-mapped><a href="room.html?room_id=' + escapeHtml(rt.id) + '">' +
-        escapeHtml(rt.name) + '</a></li>';
+    var self = this;
+    var lis = roomItems.map(function (item) {
+      var name = self.getRoomMenuLabel(item);
+      return '<li data-mapped><a href="' + escapeHtml(self.getRoomMenuLink(item)) + '">' +
+        escapeHtml(name) + '</a></li>';
     });
     nav.innerHTML = statics.join('') + lis.join('');
   };
@@ -100,17 +103,21 @@
     if (!roomtypes.length) {
       wrapper.innerHTML = '<div class="swiper-slide item c01"><div class="img" data-noimg></div></div>';
     } else {
+      // Room Preview 카드는 groupName 과 무관하게 **항상 전체 객실**을 깐다.
+      // 그룹으로 접히는 곳은 헤더 ROOMS 메뉴와 객실 상세 탭뿐이고,
+      // 카드는 저마다 자기 객실 상세로 연결한다.
       wrapper.innerHTML = roomtypes.map(function (rt) {
+        var name = (rt && rt.name) || '';
         var thumb = self.getRoomtypeThumbnailUrl(rt) || '';
         var imgDiv = thumb
           ? '<div class="img" style="background:url(' + thumb + ') no-repeat center center;background-size:cover;"></div>'
           : '<div class="img" data-noimg></div>';
         return '' +
           '<div class="swiper-slide item c01">' +
-            '<a href="room.html?room_id=' + escapeHtml(rt.id) + '" class="link">' +
+            '<a href="' + escapeHtml(self.getRoomMenuLink(rt)) + '" class="link">' +
               imgDiv +
               '<div class="txt">' +
-                '<p class="btxt">' + escapeHtml(rt.name) + '</p>' +
+                '<p class="btxt">' + escapeHtml(name) + '</p>' +
                 '<p class="stxt">' + escapeHtml(rt.nameEn || '') + '</p>' +
               '</div>' +
             '</a>' +
@@ -124,6 +131,7 @@
   };
 
   // pre-wrap 배치도 ← layoutMap.about.images[isSelected] (동적 생성)
+  // 배치도는 전체가 보여야 하므로 배경(cover+고정 높이) 대신 <img>로 깔아 원본 비율대로 높이를 잡는다.
   LayoutMapMapper.prototype.mapLayoutImage = function (section) {
     var container = document.querySelector('[data-layout-map-images]');
     if (!container) return;
@@ -131,13 +139,18 @@
     var images = this.getSelectedImages(about.images || []);
 
     if (!images.length) {
-      container.innerHTML = '<div class="img fadeUp" data-scroll="" style="background-repeat:no-repeat;background-position:right top;background-size:cover"></div>';
-      ImageHelpers.applyBackgroundPlaceholder(container.firstChild);
+      container.innerHTML = '<div class="img fadeUp" data-scroll=""><img alt="배치도"></div>';
+      ImageHelpers.applyPlaceholder(container.querySelector('img'));
     } else {
       container.innerHTML = images.map(function (img) {
-        return '<div class="img fadeUp" data-scroll="" style="background:url(' + img.url + ') no-repeat right top;background-size:cover"></div>';
+        return '<div class="img fadeUp" data-scroll=""><img src="' + escapeHtml(img.url) + '" alt="배치도"></div>';
       }).join('');
     }
+    // 이미지 로드 후 실제 높이가 정해지므로 로코 스크롤 높이 재계산
+    var self = this;
+    container.querySelectorAll('img').forEach(function (el) {
+      if (!el.complete) el.addEventListener('load', function () { self.refreshLoco(); }, { once: true });
+    });
   };
 
   document.addEventListener('DOMContentLoaded', function () {

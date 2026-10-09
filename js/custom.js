@@ -224,12 +224,40 @@ $(function() {
     });
 
 
+    // 드롭다운 배경/서브메뉴 높이를 실제 내용에 맞춰 계산
+    // (roomtypes 개수가 데이터마다 달라 고정 높이로는 배경 밖으로 메뉴가 넘침)
+    // 모든 depth_box는 top이 동일하므로 가장 높은 내용 기준 1회만 계산해 .header에 CSS 변수로 주입
+    function updateLnbBgHeight() {
+        var header = document.querySelector('.header');
+        var bg = header && header.querySelector('.hd_lnb_bg');
+        var boxes = header ? header.querySelectorAll('.hd_lnb .depth_box') : [];
+        if (!bg || !boxes.length) return;
+
+        var GAP = 40;                                   // 서브메뉴 아래 여백
+        var boxTop = boxes[0].getBoundingClientRect().top;
+        var limit = Math.max(160, window.innerHeight - boxTop - GAP);   // 화면 밖으로 나가지 않는 최대 높이
+
+        var content = 0;
+        Array.prototype.forEach.call(boxes, function (box) {
+            if (box.scrollHeight > content) content = box.scrollHeight;
+        });
+
+        var boxH = Math.min(content, limit);
+        header.style.setProperty('--lnb-box-h', Math.ceil(boxH) + 'px');
+        header.style.setProperty('--lnb-bg-h', Math.ceil(boxTop - bg.getBoundingClientRect().top + boxH + GAP) + 'px');
+        header.classList.toggle('is-lnb-scroll', content > limit);
+    }
+
     // header on (헤더가 common/header.html로 async 주입되므로 이벤트 위임 사용)
     $(document).on('mouseenter', '.hd_lnb, .hd_lnb_bg', function() {
+        updateLnbBgHeight();
         $('.depth_box, .hd_lnb_bg').addClass('on');
     });
     $(document).on('mouseleave', '.hd_lnb, .hd_lnb_bg', function() {
         $('.depth_box, .hd_lnb_bg').removeClass('on');
+    });
+    $(window).on('resize', function() {
+        if ($('.hd_lnb_bg').hasClass('on')) updateLnbBgHeight();
     });
 
 
@@ -411,6 +439,8 @@ $(function() {
       var _slideCount = _rEl.querySelectorAll('.swiper-slide').length;
       var _roomBox = _rEl.closest('.room');
       var _contBox = _rEl.closest('.cont');
+      // 객실 1개: 가로 꽉 찬 카드 1장 (참고: greennaraepool.kr) — is-single
+      if (_roomBox) _roomBox.classList.toggle('is-single', _slideCount === 1);
       // 객실 2개 이하: 슬라이드 대신 정적 정사각형 배치 (참고: oreuda.co.kr)
       if (_slideCount <= 2) {
         if (window.roomSwiper) { window.roomSwiper.destroy(true, true); window.roomSwiper = null; }
