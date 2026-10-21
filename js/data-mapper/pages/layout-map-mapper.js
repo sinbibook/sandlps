@@ -25,9 +25,11 @@
   LayoutMapMapper.prototype.mapPage = function () {
     var section = this.getSection();
     // 섹션 없음/비활성 → 404 리다이렉트 (헤더 ROOMS>미리보기 노출과 일관)
+    // 헤더 "미리보기" 숨김과 대메뉴 ROOMS 이동처(첫 객실 상세)도 header-footer-mapper 가
+    // 같은 기준(isLayoutMapEnabled)으로 정한다.
     // preview(iframe)에선 백오피스 데이터 도착 전(currentData 없음) 정적 JSON으로 튕기는 것만 방지.
     // 백오피스에서 '비노출' 선택(currentData 있음)이면 preview에도 404를 보여준다.
-    if (!section || section.enabled === false) {
+    if (!this.isLayoutMapEnabled()) {
       if (window.parent !== window && !(window.previewHandler && window.previewHandler.currentData)) return;
       window.location.replace('404.html');
       return;

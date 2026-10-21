@@ -159,7 +159,7 @@
         '</p><p class="stxt">Special,</p></div>';
       txtHtml += '<div class="swiper-slide item"><div class="txt">' +
         '<a href="facility.html?id=' + escapeHtml(f.id) + '" class="btxt">' + pad2(i + 1) + '. ' + escapeHtml(f.name) + '</a>' +
-        '<p class="stxt">' + escapeHtml(f.description || '') + '</p></div></div>';
+        '</div></div>';
     });
 
     if (imgWrap) imgWrap.innerHTML = imgHtml;

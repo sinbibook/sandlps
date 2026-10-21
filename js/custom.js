@@ -433,6 +433,8 @@ $(function() {
 
 
     // main_room (데이터 주입 후 재초기화 가능하도록 함수로 노출 → index-mapper가 호출)
+    // 모바일 = CSS 모바일 구간(max-width:680px) = 아래 Swiper breakpoints 에서 1장씩 보이는 구간
+    var _roomMobileMq = window.matchMedia('(max-width: 680px)');
     window.initRoomSwiper = function () {
       var _rEl = document.querySelector('.room-slide');
       if (!_rEl) return;
@@ -442,7 +444,9 @@ $(function() {
       // 객실 1개: 가로 꽉 찬 카드 1장 (참고: greennaraepool.kr) — is-single
       if (_roomBox) _roomBox.classList.toggle('is-single', _slideCount === 1);
       // 객실 2개 이하: 슬라이드 대신 정적 정사각형 배치 (참고: oreuda.co.kr)
-      if (_slideCount <= 2) {
+      // 단, 모바일에서 2개면 1장씩 보이므로 슬라이더로 넘긴다
+      var _isStatic = _slideCount === 1 || (_slideCount === 2 && !_roomMobileMq.matches);
+      if (_isStatic) {
         if (window.roomSwiper) { window.roomSwiper.destroy(true, true); window.roomSwiper = null; }
         if (_roomBox) _roomBox.classList.add('is-static');
         if (_contBox) _contBox.classList.add('room-static');
@@ -480,7 +484,7 @@ $(function() {
                 slidesPerView: 1,
                 spaceBetween: 34,
             },
-            580: {
+            681: {
                 slidesPerView: 2,
                 spaceBetween: 34,
             },
@@ -500,6 +504,13 @@ $(function() {
       });
     };
     window.initRoomSwiper();
+    // 객실 2개는 모바일 경계를 넘을 때 정적 ↔ 슬라이더가 바뀌므로 다시 초기화
+    var _onRoomMqChange = function () {
+      var el = document.querySelector('.room-slide');
+      if (el && el.querySelectorAll('.swiper-slide').length === 2) window.initRoomSwiper();
+    };
+    if (_roomMobileMq.addEventListener) _roomMobileMq.addEventListener('change', _onRoomMqChange);
+    else if (_roomMobileMq.addListener) _roomMobileMq.addListener(_onRoomMqChange);
 
     // 서브 룸, 스페셜 카테고리 sld
     var swiper5 = document.querySelector('.sld_list_lnb') ? new Swiper(".sld_list_lnb", {

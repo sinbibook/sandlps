@@ -217,6 +217,23 @@
     var roomtype = this.getRoomMenuRoomtype(item);
     return 'room.html?' + (paramName || 'room_id') + '=' + encodeURIComponent(roomtype && roomtype.id);
   };
+  // 객실 미리보기(layout-map) 사용 여부 — layout-map-mapper 가 404 로 보내는 기준과 같아야 한다.
+  // 섹션이 없거나 enabled=false 면 그 페이지는 열리지 않는다.
+  BaseDataMapper.prototype.isLayoutMapEnabled = function () {
+    var pages = this.getPages();
+    var section = pages.layoutMap && pages.layoutMap.sections && pages.layoutMap.sections[0];
+    return !!section && section.enabled !== false;
+  };
+  // 대메뉴 ROOMS 가 갈 곳.
+  //   미리보기 켜짐 → layout-map.html (객실 배치도)
+  //   미리보기 꺼짐 → 첫 번째 객실 상세 (헤더 ROOMS 서브메뉴의 첫 객실 항목 — mapRoomMenu 와 같은 목록)
+  // 객실이 하나도 없으면 갈 곳이 없으므로 null — 호출부가 원래 href 를 둔다.
+  BaseDataMapper.prototype.getRoomsEntryLink = function () {
+    if (this.isLayoutMapEnabled()) return 'layout-map.html';
+    var roomtypes = this.getRoomtypes().filter(function (rt) { return rt.name && rt.name.trim(); });
+    var first = this.getRoomMenuItems(roomtypes, function (rt) { return (rt && rt.name) || ''; })[0];
+    return first ? this.getRoomMenuLink(first) : null;
+  };
   BaseDataMapper.prototype.isRoomMenuItemActive = function (item, currentId) {
     if (!item || !currentId) return false;
     return (item.roomtypes || []).some(function (rt) { return String(rt && rt.id) === String(currentId); });
