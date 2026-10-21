@@ -1,7 +1,7 @@
 {
   "metadata": {
-    "version": "1.14.0",
-    "generatedAt": "2026-10-21T08:24:33.412842733Z",
+    "version": "1.15.0",
+    "generatedAt": "2026-10-21T08:29:34.694981621Z",
     "templateType": "trip_f",
     "propertyId": "60df81a1-3219-404f-b015-57807fbd38fb",
     "homepageId": "89dab303-b092-4990-993b-064c4b285ffc"
@@ -827,7 +827,7 @@
         {
           "thumbnail": [
             {
-              "id": "01a15d8f-2207-714f-a19f-8cbb7f927172",
+              "id": "01a15d94-229a-76f7-850d-8d0d86f8b3d2",
               "url": "https://bookingplay-media.s3.amazonaws.com/room_images/2026/07/24/oMQKjdJ7lU30.jpg",
               "sortOrder": 11,
               "description": "",
@@ -837,7 +837,7 @@
           ],
           "interior": [
             {
-              "id": "01a15d8f-2207-71ad-9a57-ff56291cc415",
+              "id": "01a15d94-229a-7750-8ce0-5d3263f17a0c",
               "url": "https://bookingplay-media.s3.amazonaws.com/room_images/2026/07/24/tUmYRNs9K8yO.jpg",
               "sortOrder": 12,
               "description": "",
@@ -845,7 +845,7 @@
               "blockId": null
             },
             {
-              "id": "01a15d8f-2207-7202-8f9d-ae1e9c8422e6",
+              "id": "01a15d94-229a-77a5-9ad0-8d755bb8ded0",
               "url": "https://bookingplay-media.s3.amazonaws.com/room_images/2026/07/24/3rYDUVKl0Tvh.jpg",
               "sortOrder": 13,
               "description": "",
@@ -853,7 +853,7 @@
               "blockId": null
             },
             {
-              "id": "01a15d8f-2207-7286-837d-a26b248c61dd",
+              "id": "01a15d94-229a-7818-aef4-8ff49b73bc3e",
               "url": "https://bookingplay-media.s3.amazonaws.com/room_images/2026/07/24/EzaUsQZV8CFO.jpg",
               "sortOrder": 14,
               "description": "",
@@ -861,7 +861,7 @@
               "blockId": null
             },
             {
-              "id": "01a15d8f-2207-72e4-ad45-4f1fa41261ec",
+              "id": "01a15d94-229a-786b-8e6f-9ef148cd078c",
               "url": "https://bookingplay-media.s3.amazonaws.com/room_images/2026/07/24/3fazoQZyWkuC.jpg",
               "sortOrder": 15,
               "description": "",
@@ -869,7 +869,7 @@
               "blockId": null
             },
             {
-              "id": "01a15d8f-2207-7346-af7f-82da3bf44d9e",
+              "id": "01a15d94-229a-78be-b7c3-443b2e324f33",
               "url": "https://bookingplay-media.s3.amazonaws.com/room_images/2026/07/24/MeG4zyulQit5.jpg",
               "sortOrder": 16,
               "description": "",
@@ -877,7 +877,7 @@
               "blockId": null
             },
             {
-              "id": "01a15d8f-2207-73a9-abaf-6caa598856b3",
+              "id": "01a15d94-229a-7917-aa4b-aea8f70ea4e1",
               "url": "https://bookingplay-media.s3.amazonaws.com/room_images/2026/07/24/RlkKFsV1oQrz.jpg",
               "sortOrder": 17,
               "description": "",
@@ -885,7 +885,7 @@
               "blockId": null
             },
             {
-              "id": "01a15d8f-2207-7420-b804-d64c18e9b569",
+              "id": "01a15d94-229a-795d-9ab4-5a264111a78f",
               "url": "https://bookingplay-media.s3.amazonaws.com/room_images/2026/07/24/L7xodHzXP4jD.jpg",
               "sortOrder": 18,
               "description": "",
@@ -893,7 +893,7 @@
               "blockId": null
             },
             {
-              "id": "01a15d8f-2207-7489-8402-7068573fb420",
+              "id": "01a15d94-229a-7ae8-989a-562030ff3c01",
               "url": "https://bookingplay-media.s3.amazonaws.com/room_images/2026/07/24/Xkn1OL8bECiP.jpg",
               "sortOrder": 19,
               "description": "",
@@ -901,7 +901,7 @@
               "blockId": null
             },
             {
-              "id": "01a15d8f-2207-7555-a37e-660ca5985882",
+              "id": "01a15d94-229a-7b5b-8eae-430cb43801c1",
               "url": "https://bookingplay-media.s3.amazonaws.com/room_images/2026/07/24/rF3gZlAIXkM5.jpg",
               "sortOrder": 20,
               "description": "",
@@ -1946,7 +1946,7 @@
         },
         {
           "id": "7620e1d1-5016-40bc-8dcf-00d0410a64e9",
-          "name": "구름1(사계절BBQ/안전문설치/오션뷰)-키즈룸",
+          "name": "구름(사계절BBQ/안전문설치/오션뷰)-키즈룸",
           "images": [
             {
               "id": "5d1e5cd4-e8af-4d08-ba38-8edd26acaeaf",
