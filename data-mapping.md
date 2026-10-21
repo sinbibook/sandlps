@@ -80,12 +80,14 @@ roomStructures[0] + "/ " + 값≥1인 항목들 나열
 | `data-rooms-submenu-mobile`    | 모바일 ROOMS 서브 `<ul.depth_list>`                                                               | `customFields.roomtypes[]` (동일)                                                                    |
 | `data-facility-submenu`        | PC SPECIAL 서브 `<ul.depth_box>`                                                                  | `property.facilities[]` (동적 생성)                                                                  |
 | `data-facility-submenu-mobile` | 모바일 SPECIAL 서브 `<ul.depth_list>`                                                             | `property.facilities[]` (동일)                                                                       |
-| `data-menu-id="layout-map"`    | 미리보기 `<li>` (헤더 ROOMS PC·모바일 + layout-map·room snb 공통)                                 | `customFields.pages.layoutMap.sections[0].enabled` (false면 숨김, `mapPreviewMenu`가 문서 전체 토글) |
+| `data-menu-id="layout-map"`    | 미리보기 `<li>` (헤더 ROOMS PC·모바일 + layout-map·room snb 공통)                                 | `customFields.pages.layoutMap.sections[0].enabled` (섹션 없음/false면 숨김, `mapPreviewMenu`가 문서 전체 토글) |
+| `data-rooms-link`              | PC 대메뉴 ROOMS `<a.depth1_a>`                                                                    | `customFields.pages.layoutMap.sections[0].enabled` (켜짐 → `layout-map.html` / 꺼짐 → 첫 객실 상세, `mapPreviewMenu`) |
 | `data-travel-menu`             | **TRAVEL 대메뉴** (PC `<li.depth1>` / 모바일 `.depth1`+`.depth_list`)                             | `customFields.pages.nearbyAttractions.sections[0].enabled` (false면 대/소메뉴 모두 숨김)             |
 
 - ROOMS 서브메뉴: `customFields.roomtypes[].name`(빈 이름 skip) 기준 `<li data-mapped><a href="room.html?id={id}">` 생성.
 - SPECIAL 서브메뉴: `property.facilities[].name` 기준 `<li data-mapped><a href="facility.html?id={id}">` 생성.
 - 미리보기 `<li data-menu-id="layout-map">`는 정적 baseline로 보존, 동적 객실은 그 뒤에 추가.
+- 대메뉴 ROOMS(`data-rooms-link`): 미리보기가 켜져 있으면 `layout-map.html`, 꺼져 있으면 ROOMS 서브메뉴 첫 객실 항목과 같은 `room.html?room_id={id}`(그룹 숙소면 첫 그룹의 첫 객실)로 보낸다(`getRoomsEntryLink()`). 그대로 두면 꺼진 숙소에서 `layout-map.html` 이 404 로 튕긴다. 꺼짐 판정은 layout-map 페이지의 404 기준과 같은 `isLayoutMapEnabled()`(섹션 없음 / `enabled:false` → 꺼짐)이고, 미리보기 li 숨김도 같은 기준이다. 객실이 하나도 없으면 원래 href 를 둔다.
 - 네이버·인스타 버튼(`mapSocialLinks`): 마크업 기본 `display:none`, `homepage.socialLinks` 4종(facebook/instagram/blog/youtube)을 모두 보되 헤더 마크업은 blog·instagram 만 있다. 하나라도 보이면 `<html data-social="on">` → PC 메뉴(`.hd_lnb`)를 1480px 이하에서 왼쪽으로 밀어 버튼과 겹치지 않게 한다(`styles/style.css`).
 - 어드민 프리뷰 `section_update` 의 `section: 'socialLinks'` 는 페이지 섹션이 아니라 `homepage.socialLinks` 를 통째로 바꾸고 헤더 소셜 버튼만 다시 매핑한다(`preview-handler.js` `remapSocialLinks`).
 
@@ -244,7 +246,7 @@ hero.images[isSelected] 기준 (rebuild 후 window.initVisualSwiper() 재초기�
 
 ## layout-map.html (= ROOMS 미리보기)
 
-> F(dawonhill) 객실 미리보기/목록 페이지. 구성: **sub_visual**(hero) → **snb_wrap**(미리보기+객실) → **main_room**(객실 슬라이더) → **pre-wrap**(배치도). 매퍼 `js/data-mapper/pages/layout-map-mapper.js`. ROOMS "미리보기" 대상이며 `layoutMap.enabled=false`면 **404 리다이렉트**(헤더 ROOMS>미리보기 노출과 일관).
+> F(dawonhill) 객실 미리보기/목록 페이지. 구성: **sub_visual**(hero) → **snb_wrap**(미리보기+객실) → **main_room**(객실 슬라이더) → **pre-wrap**(배치도). 매퍼 `js/data-mapper/pages/layout-map-mapper.js`. ROOMS "미리보기" 대상이며 `layoutMap` 섹션이 없거나 `enabled=false`면 **404 리다이렉트**(헤더 ROOMS>미리보기 노출과 일관, 이때 대메뉴 ROOMS 는 첫 객실 상세로 간다 — `isLayoutMapEnabled()` 공용).
 
 | data-\* 속성                  | 요소                                            | JSON 경로                                                                                  |
 | ----------------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------ |
@@ -332,7 +334,7 @@ hero.images[isSelected] 기준 (rebuild 후 window.initVisualSwiper() 재초기�
 | `data-facility-gallery`     | `.dimg ul`                        | `facilities[current].images[isSelected]` (대표 다음 **고정 2칸**, 없는 칸 placeholder, 2열 그리드) |
 | `data-facility-slides`      | `.vimg .spec-img .swiper-wrapper` | `facilities[]` (이미지 슬라이드, initSpecSwiper 재초기화)                                          |
 | `data-facility-titles`      | `.vimg .spec-tit`                 | `facilities[]` (txt-con: `btxt`=name, `stxt`='Special,')                                           |
-| `data-facility-texts`       | `.vimg .spec-txt .swiper-wrapper` | `facilities[]` (`0N. {name}` + description, `facility.html?id={id}`)                               |
+| `data-facility-texts`       | `.vimg .spec-txt .swiper-wrapper` | `facilities[]` (`0N. {name}`, `facility.html?id={id}`)                                             |
 
 - 하단 슬라이더 3영역(spec-img/tit/txt)은 동일 facilities[] 순서로 생성 후 `window.initSpecSwiper()` 재초기화(spec-txt↔spec-img thumbs 동기).
 - 이미지 없으면 `ImageHelpers` placeholder. `.dimg h4`(Healing Pension 등 영문)는 정적 유지(데이터 영문명 없음). 예약 버튼은 헤더 공통 `data-booking-link`(`property.realtimeBookingId`).

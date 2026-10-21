@@ -7,6 +7,11 @@
                 <!-- data-* : data-footer-business-name (property.businessInfo.businessName) -->
                 <p class="stxt" data-footer-business-name>상호명</p>
             </div>
+            <!-- data-* : data-footer-rural-stay-mark-wrap (customFields.footer.ruralStayMark 가 있을 때만 노출, 기본 숨김)
+                 data-footer-rural-stay-mark : 농어촌민박사업자 이미지 (표시마크 + 신고번호, alt = description) -->
+            <div class="ft_rural_stay_mark_wrap" data-footer-rural-stay-mark-wrap style="display: none">
+                <img class="ft_rural_stay_mark" src="" alt="농어촌민박사업자" data-footer-rural-stay-mark>
+            </div>
             <!-- data-* : data-footer-phone (property.contactPhone) / data-footer-phone-link (tel:) -->
             <div class="ft_tel">
                 <a href="tel:" data-footer-phone-link><img src="images/ft_tel.png" alt="전화"> <span data-footer-phone>000-0000-0000</span></a>
